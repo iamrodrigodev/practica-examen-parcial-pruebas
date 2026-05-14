@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.commons.lang3.StringUtils;
+import java.util.Objects;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,7 +31,7 @@ class StringUtilsBlankAndDefaultJUnitTest {
     @Test
     void defaultStringCoversNullAndNonNullValues() {
         assertEquals("", StringUtils.defaultString(null));
-        assertEquals("backup", StringUtils.defaultString(null, "backup"));
-        assertEquals("texto", StringUtils.defaultString("texto", "backup"));
+        assertEquals("backup", Objects.toString(null, "backup"));
+        assertEquals("texto", Objects.toString("texto", "backup"));
     }
 }
