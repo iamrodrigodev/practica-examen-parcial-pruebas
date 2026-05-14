@@ -5,70 +5,48 @@ Este documento presenta la especificación exhaustiva de la suite de pruebas par
 
 ---
 
-## 2. Especificación Detallada de Casos de Prueba (Total: 72)
+## 2. Especificación Detallada y Relevancia de los Casos de Prueba
 
 ### 2.1. Suite de Verificación Lógica (JUnit 5 - 36 Casos)
 Ubicación: `src/test/java/com/example/stringutils/junit`
 
 #### A. Clase: `StringUtilsAdvancedJUnitTest` (9 Casos)
-| ID | Objetivo | Entradas (Input) | Resultado Esperado |
+**Propósito y Relevancia:** Control de visualización y parseo robusto. Estas funciones son críticas en interfaces de usuario (UI) para prevenir desbordamientos de texto y en el procesamiento de archivos (Logs, CSV) donde la integridad de los tokens es vital.
+
+| ID | Objetivo | Entradas (Input) | Propósito y Relevancia Técnica |
 | :--- | :--- | :--- | :--- |
-| J1 | Verificación de ancho mín. en `abbreviate`. | "Texto", marker="...", width=3 | `IllegalArgumentException` |
-| J2 | Verificación de ancho mín. con offset. | "abcdefg", marker="...", 6, 6 | `IllegalArgumentException` |
-| J3 | Validación de `abbreviate` con `null`. | `null`, 10 | `null` |
-| J4 | Validación de `abbreviate` con `""`. | `""`, 4 | `""` |
-| J5 | Abreviación estándar. | "abcdefg", 6 | "abc..." |
-| J6 | Abreviación límite exacto. | "abcdefg", 7 | "abcdefg" |
-| J7 | Abreviación con ancho mayor. | "abcdefg", 8 | "abcdefg" |
-| J8 | Abreviación máxima compresión. | "abcdefg", 4 | "a..." |
-| J9 | Preservación de tokens en `split`. | "ab--cd----ef", "--" | `["ab", "cd", "", "ef"]` |
+| J1-J2| Validación de anchos. | Textos y marcadores variados. | **Prevención de Errores:** Asegura que el sistema no intente "abreviar" en espacios físicamente imposibles, evitando bugs visuales. |
+| J3-J8| Abreviación segura. | Offsets y límites exactos. | **UX/UI:** Garantiza que la información crítica se muestre de forma legible sin importar el tamaño del contenedor. |
+| J9 | Split complejo. | "ab--cd----ef", "--" | **Integridad de Datos:** Vital para sistemas que consumen datos de terceros donde los delimitadores pueden estar duplicados. |
 
 #### B. Clase: `StringUtilsBlankAndDefaultJUnitTest` (9 Casos)
-| ID | Objetivo | Entradas (Input) | Resultado Esperado |
+**Propósito y Relevancia:** Sanitización de entradas. Es la primera línea de defensa en cualquier aplicación para evitar que datos vacíos o nulos lleguen a la lógica de negocio o base de datos.
+
+| ID | Objetivo | Entradas (Input) | Propósito y Relevancia Técnica |
 | :--- | :--- | :--- | :--- |
-| J10 | `isBlank` con `null`. | `null` | `true` |
-| J11 | `isBlank` con vacío. | `""` | `true` |
-| J12 | `isBlank` con espacio. | `" "` | `true` |
-| J13 | `isBlank` con múltiples espacios. | `"   "` | `true` |
-| J14 | `isBlank` con texto 'a'. | `"a"` | `false` |
-| J15 | `isBlank` con texto rodeado. | `"  a  "` | `false` |
-| J16 | `isBlank` con número. | `"0"` | `false` |
-| J17 | `isBlank` con signo. | `"."` | `false` |
-| J18 | Valores por defecto (`defaultString`). | `null`, `null, "backup"`, `"texto", "backup"` | `""`, `"backup"`, `"texto"` |
+| J10-17| `isBlank` vs `isEmpty`. | `null`, `""`, `"  "`, `\t` | **Seguridad de Tipos:** Diferenciar entre un campo "no tocado" y uno "llenado solo con espacios" para aplicar reglas de validación correctas. |
+| J18 | Valores por defecto. | `defaultString` | **Robustez:** Evita el clásico `NullPointerException` al proporcionar un valor seguro de fallback automáticamente. |
 
 #### C. Clase: `StringUtilsComparisonSearchJUnitTest` (7 Casos)
-| ID | Objetivo | Entradas (Input) | Resultado Esperado |
+**Propósito y Relevancia:** Integridad en la búsqueda. Permite localizar información dentro de grandes volúmenes de texto de forma segura y eficiente.
+
+| ID | Objetivo | Entradas (Input) | Propósito y Relevancia Técnica |
 | :--- | :--- | :--- | :--- |
-| J19 | Comparación segura de nulos. | `compare(null, "a")`, `compareIgnoreCase` | Orden lexicográfico seguro |
-| J20 | Igualdad segura. | `equals(null, null)`, `equalsIgnoreCase` | `true` / `false` según match |
-| J21 | Búsqueda `containsAny`. | "zzabyycdxx", ['z', 'a'] | `true` |
-| J22 | Posiciones `indexOf`. | "aabaabaa", 'b' | Índices correctos (2, 5, etc.) |
-| J23 | Búsqueda en sets. | "abcde", "ab", "cd" | Primer match encontrado |
-| J24 | Punto de divergencia. | "i am a machine", "i am a robot" | Índice donde cambian |
-| J25 | Diferencia de contenido. | "i am a machine", "i am a robot" | "machine" vs "robot" |
+| J19-20| Comparación segura. | Nulos y diferentes casos. | **Consistencia:** Permite ordenar y comparar datos de usuarios (ej: nombres) sin que el sistema falle por valores nulos. |
+| J21-25| Búsqueda y Diferencia. | `containsAny`, `indexOfDiff` | **Análisis de Datos:** Útil para comparar versiones de un mismo registro o detectar cambios en campos de texto largo. |
 
 #### D. Clase: `StringUtilsTransformationJUnitTest` (4 Casos)
-| ID | Objetivo | Entradas (Input) | Resultado Esperado |
-| :--- | :--- | :--- | :--- |
-| J26 | Capitalización. | "cat", "CAT" | "Cat", "cAT" (uncapitalize) |
-| J27 | Locales. | "u", Locale("tr") | Conversión según región |
-| J28 | Inversión de mayúsculas. | "aBc12" | "AbC12" |
-| J29 | Rotación de caracteres. | "abcdefg", 2 | "fgabcde" |
+**Propósito y Relevancia:** Normalización de formatos. Asegura que los datos sigan un estándar visual o técnico (ej: nombres en mayúscula inicial).
 
-#### E. Clase: `StringUtilsCollectionReplacementJUnitTest` (4 Casos)
-| ID | Objetivo | Entradas (Input) | Resultado Esperado |
+| ID | Objetivo | Entradas (Input) | Propósito y Relevancia Técnica |
 | :--- | :--- | :--- | :--- |
-| J30 | Unión (Join). | `["a", "b"]`, "-" | "a-b" |
-| J31 | Reemplazo múltiple. | "aba", "a", "z" | "zbz" |
-| J32 | Superposición (Overlay). | "abcdef", "zz", 2, 4 | "abzzef" |
-| J33 | Abreviación central. | "abcdefghij", "...", 7 | "ab...ij" |
+| J26-29| Capitalize, Swap, Rotate. | "cat", Locale, "abcde" | **Estandarización:** Crucial para reportes y exportación de datos donde el formato debe ser uniforme y profesional. |
 
-#### F. Clase: `StringUtilsSubstringJUnitTest` (3 Casos)
-| ID | Objetivo | Entradas (Input) | Resultado Esperado |
-| :--- | :--- | :--- | :--- |
-| J34 | Substring con negativos. | "abc", -3 | "abc" |
-| J35 | Métodos Left/Right/Mid. | "abc", indices variados | Truncamiento seguro |
-| J36 | Delimitadores. | "a=b", "=" | "a" (before), "b" (after) |
+#### E-F. Otras Utilidades (7 Casos)
+| ID | Objetivo | Propósito y Relevancia Técnica |
+| :--- | :--- | :--- |
+| J30-33| Join, Overlay, Replace. | **Formateo:** Generación de cadenas complejas (ej: IDs, números de tarjeta enmascarados) de forma segura. |
+| J34-36| Substrings y Delimitadores. | **Extracción:** Permite diseccionar strings (ej: extraer el dominio de un correo) sin riesgos de errores de índice. |
 
 ---
 
@@ -76,56 +54,36 @@ Ubicación: `src/test/java/com/example/stringutils/junit`
 Ubicación: `src/test/java/com/example/stringutils/mockito`
 
 #### G. Clase: `StringUtilsAdvancedMockitoTest` (6 Casos)
-| ID | Objetivo | Entradas / Mock Setup | Resultado Esperado |
-| :--- | :--- | :--- | :--- |
-| M1 | Propagación de error. | `Supplier` lanza `IllegalStateException` | Excepción fluye al invocador |
-| M2 | Eficiencia (Lazy). | Texto válido + `Supplier` fallido | `Supplier` no se llama (`never()`) |
-| M3 | Detención por error. | `CharSequence.charAt(1)` lanza error | Verificación de parada inmediata |
-| M4 | Interacción `equals`. | Dos `CharSequence` mocks | Verificación de llamadas a `.length()` |
-| M5 | Verificación `contains`. | `CharSequence` mock | Verificación de acceso a `.charAt(0)` |
-| M6 | Evaluación perezosa. | `firstNonBlank(mock1, mock2)` | `mock2` no se toca si `mock1` es válido |
+**Propósito y Relevancia:** Optimización de recursos y manejo de fallos externos. Valida que el sistema sea eficiente y no se "rompa" ante errores de sus dependencias.
+
+| ID | Objetivo | Propósito y Relevancia Técnica |
+| :--- | :--- | :--- |
+| M1-M2| Propagación y Eficiencia. | **Resiliencia:** Asegura que si una base de datos (Supplier) falla, el sistema lo maneje, y que solo se llame a la BD si es estrictamente necesario. |
+| M3-M5| Interacción con Interfaces. | **Abstracción:** Valida que el código funcione con cualquier objeto de texto (`CharSequence`), no solo con `String`, permitiendo mayor flexibilidad. |
+| M6 | Evaluación Perezosa. | **Performance:** Garantiza que no se gasten ciclos de CPU procesando el segundo parámetro si el primero ya resolvió la necesidad. |
 
 #### H. Clase: `StringUtilsCharSequenceClassificationMockitoTest` (10 Casos)
-| ID | Objetivo | Entradas / Mock Setup | Resultado Esperado |
-| :--- | :--- | :--- | :--- |
-| M7-16| Clasificación. | Mocks de `CharSequence` con chars específicos. | Validación de `isAlpha`, `isNumeric`, `isWhitespace`, etc. |
+**Propósito y Relevancia:** Validación de reglas de negocio. Asegura que los datos cumplen con el formato esperado antes de procesarlos.
 
-#### I. Clase: `StringUtilsSupplierMockitoTest` (5 Casos)
-| ID | Objetivo | Entradas / Mock Setup | Resultado Esperado |
-| :--- | :--- | :--- | :--- |
-| M17 | `getIfBlank` (null). | `Supplier` devuelve "gen" | Retorna "gen" |
-| M18 | `getIfBlank` (blank). | `Supplier` devuelve "gen" | Retorna "gen" |
-| M19 | `getIfBlank` (text). | No se llama al supplier | Retorna texto original |
-| M20 | `getIfEmpty`. | Solo se llama si el string es `""` | Verificación de llamada selectiva |
-| M21 | Supplier devuelve null. | `Supplier` retorna `null` | El resultado final es `null` |
+| ID | Objetivo | Propósito y Relevancia Técnica |
+| :--- | :--- | :--- |
+| M7-16| Alpha, Numeric, Space. | **Seguridad:** Evita inyecciones de caracteres no deseados en campos sensibles como teléfonos, nombres o códigos postales. |
 
-#### J. Clase: `StringUtilsSupplierBoundaryMockitoTest` (4 Casos)
-| ID | Objetivo | Entradas / Mock Setup | Resultado Esperado |
-| :--- | :--- | :--- | :--- |
-| M22 | Supplier nulo. | `getIfBlank(str, null)` | `NullPointerException` |
-| M23 | Supplier nulo (empty). | `getIfEmpty(str, null)` | `NullPointerException` |
-| M24 | Digits con null. | `getDigits(null)` | `null` |
-| M25 | Supplier que falla. | Error dentro de `.get()` | Propagación controlada |
-
-#### K. Clase: `StringUtilsCharSequenceValidationMockitoTest` (4 Casos)
-| ID | Objetivo | Entradas / Mock Setup | Resultado Esperado |
-| :--- | :--- | :--- | :--- |
-| M26 | `isEmpty` en mock. | `.length() -> 0` | `true` |
-| M27 | `isBlank` en mock. | `.charAt(0) -> ' '` | Verificación de escaneo |
-| M28 | `containsWhitespace`. | Parada en primer espacio | No lee el resto del mock |
-| M29 | `isAlpha` Early Exit. | Detención en primer dígito | No lee caracteres posteriores |
-
-#### L. Otros: Prefix, Search e IgnoreCase (7 Casos)
-| ID | Objetivo | Entradas / Mock Setup | Resultado Esperado |
-| :--- | :--- | :--- | :--- |
-| M30-32| Prefijos/Sufijos. | Mocks de `CharSequence` y prefijos. | Verificación de `startsWith`, `endsWithAny`. |
-| M33-34| Búsqueda avanzada. | Mocks con patrones de bits. | Verificación de `indexOf` y `contains`. |
-| M35-36| Ignore Case. | Mocks de diferentes casos. | Verificación de normalización de caracteres. |
+#### I-L. Casos de Interacción y Límites (20 Casos)
+| ID | Objetivo | Propósito y Relevancia Técnica |
+| :--- | :--- | :--- |
+| M17-21| Supplier Behavior. | **Flexibilidad:** Permite que los valores por defecto sean dinámicos (calculados al momento) y no estáticos. |
+| M22-25| Boundary Exceptions. | **Estabilidad:** Verifica que el sistema falle "con gracia" (NPE controlados) cuando se le pasan proveedores de datos nulos. |
+| M26-29| Scaneo de Mocks. | **Eficiencia de Algoritmo:** Valida que `StringUtils` deje de leer el texto en cuanto encuentra lo que busca (*Early Exit*). |
+| M30-36| Prefix/Suffix/Search. | **Identificación:** Crucial para ruteo de archivos, validación de URLs y protocolos de comunicación. |
 
 ---
 
 ## 3. Conclusión de Calidad
-La suite completa de **72 casos** garantiza:
-1.  **Verificación Funcional:** Cada camino lógico ha sido ejercitado.
-2.  **Validación de Diseño:** El sistema responde correctamente a fallos de dependencias.
-3.  **Repetibilidad:** Ejecución consistente mediante `mvn test`.
+La suite completa de **72 casos** no solo verifica que el código "funcione", sino que garantiza que sea **seguro, eficiente y resiliente**. Cada test tiene una relevancia directa en la calidad final del software entregado al cliente, cumpliendo con los estándares de **Ingeniería de Requerimientos**.
+
+---
+## 🚀 Ejecución
+```bash
+mvn test
+```
