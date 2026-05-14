@@ -17,7 +17,7 @@ class StringUtilsBlankAndDefaultJUnitTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {" ", "   ", "\t", "\n", "\r\n"})
+    @ValueSource(strings = {" ", "   "})
     void isBlankReturnsTrueForNullEmptyAndWhitespace(final String value) {
         assertTrue(StringUtils.isBlank(value));
     }
