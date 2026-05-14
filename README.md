@@ -1,50 +1,62 @@
-# Práctica: Pruebas Unitarias Avanzadas con StringUtils
+# Informe Técnico: Análisis, Diseño y Ejecución de Pruebas Unitarias
 
-PROYECTO DE PREPARACIÓN PARA EXAMEN PARCIAL - PRUEBAS DE SOFTWARE
+## 1. Introducción y Marco Teórico
+Este proyecto se fundamenta en los principios de la **Ingeniería de Requerimientos** y el **Diseño de Pruebas** según el estándar **IEEE 610**. El objetivo primordial es la verificación y validación de la clase `StringUtils` mediante una suite de pruebas técnica y formalmente estructurada.
 
-## 🎯 Objetivo del Proyecto
-Implementar una suite de pruebas de alta calidad para la clase `StringUtils` de Apache Commons. El enfoque principal es demostrar el uso correcto de **JUnit 5** para validación de algoritmos y **Mockito** para la verificación de comportamiento e interacciones.
+### 1.1. Definición de Caso de Prueba (IEEE 610)
+Cada prueba implementada en este repositorio cumple estrictamente con la definición normativa:
+> "Un conjunto de entradas de prueba, condiciones de ejecución y resultados esperados desarrollados con un objetivo particular."
+
+### 1.2. Verificación vs. Validación
+- **Verificación:** Se garantiza que los métodos de `StringUtils` (como `abbreviate` o `split`) se comporten exactamente según la especificación técnica de Apache Commons, construyendo la lógica correctamente.
+- **Validación:** Se asegura que las pruebas reflejen las necesidades reales de los desarrolladores que consumen la librería, garantizando que el sistema sea consistente, completo e inequívoco.
 
 ---
 
-## 📊 Metodología de Pruebas (Balance 50/50)
+## 2. Metodología de Diseño de Pruebas
+El diseño se ha realizado analizando los requisitos funcionales para determinar las **condiciones de prueba** óptimas.
 
-Para cumplir con el requisito académico, se han implementado **72 casos de prueba** divididos equitativamente:
+### 2.1. Técnicas de Diseño Empleadas
+Se han utilizado diversas técnicas para cubrir los requisitos de manera exhaustiva:
+- **Análisis de Valores Límite:** Aplicado en tests de `substring` y `abbreviate` para verificar el comportamiento en las fronteras de los índices y anchos permitidos.
+- **Partición de Equivalencia:** Clasificación de entradas en grupos (null, empty, whitespace, valid text) para reducir la redundancia y maximizar la cobertura.
+- **Pruebas de Estado de Dependencias (Mocking):** Validación del comportamiento del sistema ante fallos o respuestas específicas de sus colaboradores (`Supplier`, `CharSequence`).
 
-### 1. Suite JUnit (36 Tests - Enfoque: Lógica y Algoritmos)
-Ubicada en `src/test/java/com/example/stringutils/junit`. Se centra en la pureza del código y el manejo de datos.
+---
 
-| Categoría de Test | Casos de Prueba Detallados | Razón de la Elección |
+## 3. Estructura de la Suite (Balance 50/50)
+
+### 3.1. Casos de Prueba JUnit (Verificación de Requisitos Funcionales)
+**Total: 36 Tests**
+- **Objetivo:** Encontrar defectos en la lógica algorítmica y brindar confianza sobre la calidad del software.
+- **Procedimiento:** Definición de entradas precisas e inequívocas mediante `@ParameterizedTest`.
+- **Resultados Esperados:** Validación de la salida contra el estándar esperado (ej: `assertEquals`, `assertThrows`).
+
+| Clase de Prueba | Condición de Prueba | Técnica |
 | :--- | :--- | :--- |
-| **Validación de Estados** | `isBlank`, `isEmpty`, `isAnyBlank`. Pruebas con `null`, `""`, `" "`, `\t`, `\n`. | Es la base de la robustez. Se usa `@ParameterizedTest` para cubrir todas las variantes de "vacío" en una sola lógica. |
-| **Manipulación y Límites** | `substring`, `left`, `right`, `mid`. Pruebas con índices negativos y fuera de rango. | `StringUtils` destaca por no lanzar excepciones en estos casos; el test asegura que devuelva `EMPTY` o el string original según la regla. |
-| **Algoritmos Complejos** | `splitByWholeSeparatorPreserveAllTokens`, `abbreviate`. Pruebas con separadores múltiples y tokens vacíos adyacentes. | Valida que la lógica de partición no "pierda" datos cuando hay separadores seguidos, un error común en implementaciones simples. |
-| **Manejo de Errores** | `assertThrows` en `abbreviate` con anchos menores al marcador (ej: < 4). | Verifica que la clase proteja su integridad lanzando `IllegalArgumentException` cuando los parámetros violan la lógica del negocio. |
+| `AdvancedJUnitTest` | Manejo de anchos insuficientes. | Pruebas Negativas (Excepciones) |
+| `BlankAndDefaultJUnitTest` | Consistencia en la definición de "Blank". | Partición de Equivalencia |
+| `SubstringJUnitTest` | Precisión en el manejo de índices out-of-bounds. | Valores Límite |
 
-### 2. Suite Mockito (36 Tests - Enfoque: Interacciones y Comportamiento)
-Ubicada en `src/test/java/com/example/stringutils/mockito`. Se centra en cómo `StringUtils` interactúa con objetos externos.
+### 3.2. Casos de Prueba Mockito (Validación de Interacciones)
+**Total: 36 Tests**
+- **Objetivo:** Garantizar que los requisitos se aborden adecuadamente en la interacción con interfaces y evitar efectos secundarios.
+- **Procedimiento:** Inyección de mocks para controlar las condiciones de ejecución y verificar el flujo de control.
+- **Resultados Esperados:** Verificación de interacciones (ej: `verify`, `verifyNoInteractions`).
 
-| Categoría de Test | Casos de Prueba Detallados | Razón de la Elección |
+| Clase de Prueba | Condición de Prueba | Técnica |
 | :--- | :--- | :--- |
-| **Lazy Evaluation (Supplier)** | `getIfBlank(str, Supplier)`. Uso de `when(...).thenReturn(...)` y `verify(..., never())`. | Demuestra que el `Supplier` solo se ejecuta si el string es blanco. Es una prueba de **eficiencia y rendimiento**. |
-| **Interacción con Interfaces** | Mocks de `CharSequence`. Verificación de llamadas a `.length()` y `.charAt(i)`. | `StringUtils` trabaja con interfaces, no solo con `String`. El mock permite contar cuántas veces se consulta el objeto para validar el algoritmo. |
-| **Propagación de Fallos** | Simulación de excepciones en `Supplier` o `CharSequence`. | Asegura que si una dependencia externa falla, `StringUtils` no oculte el error de forma silenciosa, sino que lo propague correctamente. |
-| **Control de Flujo** | `verifyNoInteractions` y `verifyNoMoreInteractions`. | Es el criterio de "limpieza". Asegura que el código no haga llamadas innecesarias a objetos después de haber encontrado un resultado (Early Exit). |
+| `AdvancedMockitoTest` | Propagación de fallos desde dependencias. | Inyección de Errores |
+| `SupplierMockitoTest` | Evaluación perezosa (Lazy Evaluation). | Verificación de Comportamiento |
+| `CharSequenceMockitoTest` | Eficiencia en el recorrido de secuencias. | Verificación de Interacciones |
 
 ---
 
-## 🛠️ Tecnologías y Estándares
-- **Java 21**: Uso de records y sintaxis moderna.
-- **Maven**: Gestión de ciclo de vida.
-- **JUnit 5**: Uso de `@DisplayName`, `@ParameterizedTest` y `assertAll`.
-- **Mockito 5**: Uso de `@Mock`, `verify` y stubs avanzados.
-- **Conventional Commits**: Historial de git organizado por tipos (`feat`, `fix`, `refactor`, `docs`).
+## 4. Trazabilidad y Repetibilidad
+Para garantizar la **repetibilidad**, los procedimientos de prueba están automatizados mediante **Maven**. La matriz de trazabilidad se gestiona implícitamente a través de las anotaciones `@DisplayName`, vinculando cada test a un requerimiento específico de la funcionalidad de `StringUtils`.
 
----
-
-## 🚀 Ejecución de Pruebas
-Para validar el balance y la aprobación total:
+## 5. Ejecución
 ```bash
 mvn test
 ```
-*Total de pruebas esperado: 72 (36 JUnit / 36 Mockito)*
+*Total: 72 Casos de Prueba (36 Verificación Lógica / 36 Validación de Comportamiento)*
